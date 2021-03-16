@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <link rel="icon" href="data:,">
-        <title>The last tower!</title>
+        <title>IaaC_Pedro Ribeiro - Final assignment</title>
         <style>
             body {
                 margin: 0;
@@ -37,7 +37,8 @@
         <div id="loader"></div> 
         <div id="container">
             <div id="overlay">
-              <div><h1>THE LAST TOWER</h1></div>
+              <div><h1>THE LAST TOWER AND THE FIRST ROOF
+              </h1></div>
                 <div>
                   <label for="RH_IN:height">Tower: Floor height</label>
                   <input type="range" id="RH_IN:height" min="3" max="4.5" value="3.5" step="0.5">
@@ -59,16 +60,16 @@
                   <input type="range" id="RH_IN:roofshape" min="6" max="18" value="6" step="1">
                 </div>
                 <div>
-                <label for="RH_IN:sunstudy">Sun study</label>
+                <label for="RH_IN:sunstudy">Sun study off</label>
                   <input type="checkbox" id="RH_IN:sunstudy" >
                 </div>
                 <div>
                 <label for="RH_IN:month">Sun study: Month</label>
-                  <input type="range" id="RH_IN:month" min="3" max="9" value="3" step="1">
+                  <input type="range" id="RH_IN:month" min="2" max="8" value="5" step="1">
                 </div>
                 <div>
                 <label for="RH_IN:day">Sun study: day</label>
-                  <input type="range" id="RH_IN:day" min="1" max="31" value="1" step="1">
+                  <input type="range" id="RH_IN:day" min="1" max="29" value="1" step="1">
                 </div>
                 <div>
                   <div>
@@ -102,6 +103,7 @@ rhino3dm().then(async m => {
     rhino = m
 
     init()
+    loadContext()
     compute()
 })
 
@@ -143,8 +145,6 @@ function getInputs() {
 // more globals
 let scene, camera, renderer, controls
 
-   const model = 'final_assignment_context.3dm' 
-
 /**
  * Sets up the scene, camera, renderer, lights and controls and starts the animation
  */
@@ -179,17 +179,18 @@ function init() {
     const ambientLight = new THREE.AmbientLight()
     scene.add( ambientLight )
 
-    loader.load( model , function ( object ) {
-        object.userData.static = true
-        //uncomment to hide spinner when model loads
-        //document.getElementById('loader').remove()
-        scene.add( object )
-    } )
-
     // handle changes in the window size
     window.addEventListener( 'resize', onWindowResize, false )
 
     animate()
+}
+function loadContext() {
+  loader.load('final_assignment_context.3dm', function (object) {
+    object.traverse(child => {
+      child.name = 'context'
+    })
+    scene.add(object)
+  })
 }
 
 /**
@@ -256,6 +257,10 @@ function collectResults(responseJson) {
       showSpinner(false)
       return
     }
+  // hack (https://github.com/mcneel/rhino3dm/issues/353)
+  const sphereAttrs = new rhino.ObjectAttributes()
+    sphereAttrs.mode = rhino.ObjectMode.Hidden
+    doc.objects().addSphere(new rhino.Sphere([0,0,0], 0.001), sphereAttrs)
 
     // load rhino doc into three.js scene
     const buffer = new Uint8Array(doc.toByteArray()).buffer
@@ -271,7 +276,7 @@ function collectResults(responseJson) {
 
         // clear objects from scene. do this here to avoid blink
         scene.traverse(child => {
-            if (!child.isLight) {
+          if (!child.isLight && child.name !== 'context') {
                 scene.remove(child)
             }
         })
