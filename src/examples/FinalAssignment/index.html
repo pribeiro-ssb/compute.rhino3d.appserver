@@ -261,6 +261,7 @@ async function compute() {
   ///////////////////////////////////////////////////////////////////////////
   // update call to compute to use data.definition, instead of hard-coding
   // the grasshopper file name
+  
   const url = new URL('/solve/' + data.definition, window.location.origin)
   Object.keys(data.inputs).forEach(key => url.searchParams.append(key, data.inputs[key]))
   console.log(url.toString())
